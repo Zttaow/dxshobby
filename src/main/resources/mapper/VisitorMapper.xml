@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="club.ztt.dao.VisitorDao" >
+  <resultMap id="BaseResultMap" type="club.ztt.entity.Visitor" >
+    <id column="ip" property="ip" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="gmt_create" property="gmtCreate" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <sql id="Base_Column_List" >
+    ip, address, gmt_create
+  </sql>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from visitor
+    where ip = #{ip,jdbcType=VARCHAR}
+  </select>
+
+
+  <insert id="insert" parameterType="club.ztt.entity.Visitor" >
+    insert into visitor (ip, address, gmt_create
+      )
+    values (#{ip,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{gmtCreate,jdbcType=TIMESTAMP}
+      )
+  </insert>
+
+
+</mapper>

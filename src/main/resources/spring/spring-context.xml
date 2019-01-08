@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <context:component-scan base-package="club.ztt">
+        <!--不扫描action下的类-->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!--数据源-->
+    <util:properties id="jdbc" location="classpath:db.properties"></util:properties>
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="jdbcUrl" value="#{jdbc.url}"/>
+        <property name="driverClass" value="#{jdbc.driver}"/>
+        <property name="user" value="#{jdbc.user}"/>
+        <property name="password" value="#{jdbc.password}"/>
+        <!--初始化连接数-->
+        <property name="initialPoolSize" value="#{jdbc.initial}"/>
+        <!--连接池中保留的最小连接数-->
+        <property name="minPoolSize" value="#{jdbc.min}"/>
+        <!--连接池中保留的最大连接数-->
+        <property name="maxPoolSize" value="#{jdbc.max}"/>
+        <!--最大空闲时间,60秒内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 -->
+        <property name="maxIdleTime" value="#{jdbc.maxIdleTime}"/>
+        <!--连接池连接耗尽的时候，c3p0每次增加的连接数-->
+        <property name="acquireIncrement" value="#{jdbc.increment}"/>
+        <!--从数据库获取新连接失败后重复尝试的次数-->
+        <property name="acquireRetryAttempts" value="#{jdbc.reTryAttempts}"/>
+    </bean>
+
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="mapperLocations"
+                  value="classpath:mapper/*.xml">
+        </property>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+    </bean>
+
+    <!-- Spring自动扫描dao接口包 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="club.ztt.dao"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+    </bean>
+
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        <aop:pointcut expression="execution(* club.ztt.service.*.*(..))" id="pointcut"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/>
+    </aop:config>
+
+
+
+    <!---->
+    <aop:aspectj-autoproxy/>
+</beans>
